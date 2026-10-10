@@ -167,6 +167,8 @@ def build_week(week):
         print("     ", w15_pdf.build(w15_pdf.CFG, w15_pdf.story))
         print("     ", w15_pptx.build_pptx())
         print("     ", w15_docx.build(w15_docx.CFG, w15_docx.content))
+        import w15_assignment_pdf
+        print("     ", w15_assignment_pdf.build(w15_assignment_pdf.CFG, w15_assignment_pdf.story))
     elif week == 16:
         print("[2/4] Week 16 visuals")
         import week16_visuals
@@ -177,6 +179,8 @@ def build_week(week):
         print("     ", w16_pdf.build(w16_pdf.CFG, w16_pdf.story))
         print("     ", w16_pptx.build_pptx())
         print("     ", w16_docx.build(w16_docx.CFG, w16_docx.content))
+        import w16_assignment_pdf
+        print("     ", w16_assignment_pdf.build(w16_assignment_pdf.CFG, w16_assignment_pdf.story))
     else:
         print(f"No content module yet for week {week}.")
         return

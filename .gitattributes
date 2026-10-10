@@ -1,0 +1,5 @@
+# Generated distribution documents are binary, even when PDF streams are ASCII.
+*.pdf binary
+*.docx binary
+*.pptx binary
+*.png binary

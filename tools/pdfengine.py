@@ -175,7 +175,7 @@ class NumberedCanvas(_canvas_mod.Canvas):
 
     def _draw_footer(self, total):
         self.setFont("OpenSans", 7.5)
-        self.setFillColor(HexColor(C_GREY))
+        self.setFillColor(HexColor(C_CREAM if self._pageNumber == 1 else C_GREY))
         self.drawRightString(PAGE_W - MARGIN, 0.45 * inch, f"Page {self._pageNumber} of {total}")
 
 
@@ -271,8 +271,14 @@ def draw_cover(canv, cfg):
     canv.setFillColor(HexColor(C_CREAM))
     canv.setFont("Poppins-ExtraBold", 40)
     canv.drawCentredString(w / 2, h - 5.85 * inch, f"WEEK {cfg['week']}")
-    canv.setFont("Poppins-SemiBold", 15)
-    canv.drawCentredString(w / 2, h - 6.35 * inch, cfg["title"])
+    # Wrap long assignment titles instead of clipping them at the page edges.
+    title_style = ParagraphStyle("cover_title", fontName="Poppins-SemiBold",
+                                 fontSize=15, leading=19, alignment=TA_CENTER,
+                                 textColor=HexColor(C_CREAM))
+    title = Paragraph(cfg["title"], title_style)
+    title_width = w - 1.3 * inch
+    _, title_height = title.wrap(title_width, 1.0 * inch)
+    title.drawOn(canv, 0.65 * inch, h - 6.35 * inch - title_height + 15)
 
     bx, by, bw_, bh_ = 1.1 * inch, 1.95 * inch, w - 2.2 * inch, 1.75 * inch
     canv.setFillColor(HexColor(C_DARK))
@@ -291,8 +297,11 @@ def draw_cover(canv, cfg):
         canv.setFont("Poppins-SemiBold", 9)
         canv.drawString(bx + 0.3 * inch, yy, k.upper())
         canv.setFillColor(HexColor(C_CREAM))
-        canv.setFont("OpenSans", 10)
-        canv.drawString(bx + 2.35 * inch, yy, v)
+        value_x = bx + 2.35 * inch
+        available = bx + bw_ - 0.15 * inch - value_x
+        value_size = min(10, 10 * available / pdfmetrics.stringWidth(v, "OpenSans", 10))
+        canv.setFont("OpenSans", value_size)
+        canv.drawString(value_x, yy, v)
         yy -= 0.36 * inch
 
     canv.setFillColor(HexColor(C_CREAM))

@@ -114,38 +114,44 @@ def story():
     s += [P("<b>Name:</b> Register for Course · <b>Primary Actor:</b> Student · <b>Goal:</b> register "
             "for an available course · <b>Preconditions:</b> authenticated, registration period open, "
             "account active."),
-          P("<b>Main success scenario:</b> (1) student selects “Register Course”; (2) system displays "
-            "available courses; (3) student selects a course; (4) system checks the course exists; "
-            "(5) checks prerequisites; (6) checks capacity; (7) checks for duplicate registration; "
-            "(8) creates the registration; (9) updates course enrolment; (10) displays confirmation."),
-          P("<b>Alternative flows:</b> if the course is full, the system rejects the registration and "
-            "displays “Course is currently full.”; if the prerequisite is not satisfied, the system "
-            "rejects the registration. These alternatives become important later when the sequence "
-            "diagram is constructed.")]
+          P("<b>Main success scenario:</b> (1) the student selects an open course; (2) the system checks "
+            "prerequisites and rejects an active duplicate; (3) <font name='Mono'>Course.reserveSeat()</font> "
+            "atomically claims a seat; (4) the system creates and saves the Registration in the same "
+            "transaction; (5) after the transaction commits, the system sends confirmation and displays the result."),
+          P("<b>Alternative flows:</b> if the prerequisite fails, a duplicate exists or no seat can be "
+            "reserved, the system rejects the request without creating or saving a new Registration. "
+            "If persistence fails after a seat claim, the transaction rolls the claim back. These alternatives "
+            "are shown in the sequence/activity models.")]
     s += FIG("w15_use_case_spec.png", "Figure 8 — Use-case specification")
 
     # PART G — identifying objects -------------------------------------------------------
     s.append(H1("PART G — IDENTIFYING OBJECTS"))
     s.append(H1("10.  Candidate Classes"))
     s += [P("From the requirements we identify <b>domain classes</b> — Student, Course, Registration, "
-            "Programme, Prerequisite, Administrator — and <b>technical/application classes</b> — "
-            "RegistrationController, RegistrationService, CourseRepository, RegistrationRepository, "
-            "NotificationService, AuthenticationService. Domain classes represent the problem domain; "
-            "technical classes support implementation. <b>Do not confuse these.</b>")]
+            "Programme, a PrerequisiteRule where policy is complex, Administrator and Lecturer — and "
+            "<b>technical/application classes</b> — RegistrationController, RegistrationService, "
+            "StudentRepository, CourseRepository, RegistrationRepository, NotificationService and "
+            "AuthenticationService. Domain classes represent the problem domain; technical classes "
+            "support implementation. <b>Do not confuse these.</b>")]
     s += FIG("w15_candidate_classes.png", "Figure 9 — Domain vs technical classes")
 
     # PART H — class model -------------------------------------------------------
     s.append(H1("PART H — CLASS MODEL"))
     s.append(H1("11.  The Design Classes"))
     s += [P("Refined design classes include: <font name='Mono'>Student</font> (studentId, name, email, "
-            "programme; registerCourse(), dropCourse(), viewRegistration()), <font name='Mono'>Course"
-            "</font> (courseCode, courseName, credits, capacity, status; isAvailable(), checkCapacity(), "
-            "addStudent(), removeStudent()), <font name='Mono'>Registration</font> (registrationId, "
-            "registrationDate, status; confirm(), cancel()), <font name='Mono'>RegistrationService"
-            "</font> (registerStudent(), dropStudent(), checkEligibility(), checkDuplicate()) and "
-            "<font name='Mono'>RegistrationRepository</font> (save(), findByStudent(), findByCourse(), "
-            "delete()). Notice the movement from “register a course” to a detailed design: "
-            "<b>Controller -> Service -> Domain objects -> Repository.</b>")]
+            "programme, completedCourses; isEligibleFor(course), dropCourse()), <font name='Mono'>Course</font> "
+            "(courseCode, courseName, credits, capacity, enrolledCount, status; prerequisite self-association, "
+            "hasCapacity(), "
+            "reserveSeat(), releaseSeat()), <font name='Mono'>Registration</font> (registrationId, "
+            "registrationDate, status; create(student, course), confirm(), cancel()), "
+            "<font name='Mono'>RegistrationService</font> "
+            "(registerStudent(), dropStudent(), checkEligibility(), checkDuplicate()) and "
+            "<font name='Mono'>RegistrationRepository</font> (save(), existsActiveFor(), findByStudent(), "
+            "findByCourse()). A complex prerequisite policy can have its own <font name='Mono'>PrerequisiteRule</font> "
+            "class. Notice the movement from “register a course” to a detailed design: "
+            "<b>Controller -> Service -> Domain objects -> Repository.</b> The model should state that "
+            "each Registration connects exactly one Student and one Course. A database uniqueness constraint or "
+            "equivalent transaction must prevent concurrent duplicate active registrations.")]
     s += FIG("w15_class_model.png", "Figure 10 — The class model")
 
     # PART I — associations -------------------------------------------------------
@@ -153,9 +159,11 @@ def story():
     s.append(H1("12.  Student, Course and Registration"))
     s += [P("A student can have many registrations: <font name='Mono'>Student 1 — 0..* Registration"
             "</font> — one student may have zero or many registration records. A course can have many "
-            "registrations: <font name='Mono'>Course 1 — 0..* Registration</font>. Combined, this is "
-            "far more meaningful than simply drawing lines between classes — <b>students must understand "
-            "the multiplicity.</b>")]
+            "registrations: <font name='Mono'>Course 1 — 0..* Registration</font>. The Student-to-Course "
+            "completed-course association supports prerequisite checks; Course can also have a recursive "
+            "prerequisite association with explicit target/prerequisite roles. Use a <font name='Mono'>PrerequisiteRule</font> "
+            "class if policy has compound conditions. Combined, these relationships are more meaningful "
+            "than simply drawing lines between classes — <b>students must understand the multiplicity.</b>")]
     s += FIG("w15_associations.png", "Figure 11 — Associations and multiplicity")
 
     # PART J — inheritance -------------------------------------------------------
@@ -172,37 +180,47 @@ def story():
     # PART K — sequence diagram -------------------------------------------------------
     s.append(H1("PART K — SEQUENCE DIAGRAM"))
     s.append(H1("14.  Register Course Interaction"))
-    s += [P("A simplified interaction: <font name='Mono'>Student</font> sends "
-            "<font name='Mono'>register(course)</font> to <font name='Mono'>RegistrationController"
-            "</font>, which sends <font name='Mono'>registerStudent()</font> to "
-            "<font name='Mono'>RegistrationService</font>; the service calls "
-            "<font name='Mono'>checkEligibility()</font>, then <font name='Mono'>Course.checkCapacity()"
-            "</font>, creates the <font name='Mono'>Registration</font> and calls "
-            "<font name='Mono'>save()</font> on <font name='Mono'>RegistrationRepository</font>. The "
-            "class diagram told us <i>what classes exist</i>; the sequence diagram tells us <i>how those "
-            "classes cooperate</i> — that distinction must be clear.")]
+    s += [P("Student sends <font name='Mono'>requestRegistration(courseCode)</font> to "
+            "<font name='Mono'>RegistrationController</font>, which calls "
+            "<font name='Mono'>RegistrationService.registerStudent()</font>. The service checks "
+            "eligibility, asks <font name='Mono'>RegistrationRepository.existsActiveFor()</font> to "
+            "reject duplicates, then calls <font name='Mono'>Course.reserveSeat()</font>. Only when "
+            "the guarded checks succeed does it create and save <font name='Mono'>Registration</font> "
+            "and send confirmation through <font name='Mono'>NotificationService</font> only after the "
+            "registration transaction commits. An <font name='Mono'>alt</font> fragment shows the rejection "
+            "path. <b>reserveSeat() must be "
+            "atomic:</b> a separate capacity check followed by a later update can overbook the final "
+            "seat under concurrent requests. Enforce duplicate prevention atomically too: an existence query alone "
+            "can race, so use a unique active-registration constraint or equivalent transaction. Coordinate "
+            "seat reservation and save in one transaction; if persistence fails, roll the seat back. The "
+            "class diagram shows <i>what exists</i>; the sequence "
+            "diagram shows <i>how those classes cooperate</i>.")]
     s += FIG("w15_sequence.png", "Figure 13 — Sequence diagram: Register Course")
 
     # PART L — state machine -------------------------------------------------------
     s.append(H1("PART L — STATE MACHINE"))
     s.append(H1("15.  Course Lifecycle"))
     s += [P("A course moves through <font name='Mono'>Created -> Available -> Full -> Closed</font>. "
-            "Transitions: <b>Created -> Available</b> when the administrator opens registration; "
-            "<b>Available -> Full</b> when the last seat is taken; <b>Full -> Available</b> when a student "
-            "drops and a seat becomes available; <b>Available -> Closed</b> and <b>Full -> Closed</b> when "
-            "the registration period ends."),
-          P("We can of course put <font name='Mono'>status : CourseStatus</font> in the class, but that "
-            "does not explain <i>what causes the status to change</i>. The state machine provides that "
-            "dynamic information — which is exactly why multiple models are useful.")]
+            "Transitions: <b>Created -> Available</b> when an authorised administrator opens registration; "
+            "<b>Available -> Full</b> when an atomic <font name='Mono'>reserveSeat()</font> succeeds for "
+            "the final seat; <b>Full -> Available</b> when a seat is released; and <b>Available/Full -> "
+            "Closed</b> when the registration period ends. Keep the guard and capacity invariant in view: "
+            "<font name='Mono'>enrolledCount <= capacity</font>."),
+          P("We can put <font name='Mono'>status : CourseStatus</font> in the class, but that does not "
+            "explain <i>what causes the status to change</i>. The state machine supplies that dynamic "
+            "information and should agree with the sequence diagram.")]
     s += FIG("w15_state_machine.png", "Figure 14 — Course lifecycle state machine")
 
     # PART M — activity diagram -------------------------------------------------------
     s.append(H1("PART M — ACTIVITY DIAGRAM"))
     s.append(H1("16.  Registration Workflow"))
-    s += [P("The workflow: Start -> Login -> View Courses -> Select Course -> Check Prerequisite -> "
-            "<i>[satisfied?]</i> No -> Reject / Yes -> Check Capacity -> <i>[space available?]</i> No -> "
-            "Reject / Yes -> Create Registration -> Save Registration -> Send Confirmation -> End. "
-            "The activity diagram describes the workflow of the registration process.")]
+    s += [P("The workflow: Start -> authenticate -> select open course -> check prerequisites -> "
+            "<i>[eligible?]</i> No -> reject / Yes -> check for duplicate -> <i>[already registered?]</i> "
+            "Yes -> reject / No -> atomically reserve a seat -> <i>[seat reserved?]</i> No -> report full / "
+            "Yes -> create and save Registration in the seat transaction -> commit -> send confirmation -> End. "
+            "The activity diagram describes "
+            "workflow decisions; the sequence diagram assigns those actions to objects. A failed guard "
+            "must not create or save a new Registration.")]
     s += FIG("w15_activity.png", "Figure 15 — Registration workflow activity diagram")
 
     # PART N — component design -------------------------------------------------------
@@ -219,12 +237,14 @@ def story():
     # PART O — traceability -------------------------------------------------------
     s.append(H1("PART O — MODEL TRACEABILITY"))
     s.append(H1("18.  Requirement -> Implementation"))
-    s += [P("Requirement (“students must register for courses”) -> use case (Register Course) -> sequence "
-            "(Student -> RegistrationController -> RegistrationService -> Course -> Registration) -> classes "
-            "(controller, service, course, registration) -> operations (registerStudent(), "
-            "checkEligibility(), checkCapacity(), createRegistration(), save()) -> implementation in Java, "
-            "C#, Python, C++, Kotlin or TypeScript. <b>The exact language does not change the OOAD "
-            "principle.</b>")]
+    s += [P("Trace FR5 (register an eligible student) from the <font name='Mono'>Register Course</font> "
+            "use case to <font name='Mono'>RegistrationService.registerStudent()</font>, the "
+            "<font name='Mono'>Registration</font> class and its save operation. Trace FR6 (prevent "
+            "duplicates) to <font name='Mono'>existsActiveFor()</font> and its guarded rejection path; "
+            "trace FR7 (capacity) to atomic <font name='Mono'>Course.reserveSeat()</font> and the "
+            "Available/Full state transition. NFRs such as role-based access should map to the "
+            "authentication boundary and test evidence. This is stronger than a one-way diagram list: "
+            "each requirement has a model/design element and a way to validate it.")]
     s += FIG("w15_traceability.png", "Figure 17 — Model traceability")
 
     # PART P — consistency check -------------------------------------------------------

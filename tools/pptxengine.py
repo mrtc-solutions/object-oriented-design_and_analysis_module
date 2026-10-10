@@ -92,6 +92,13 @@ class Deck:
 
     def pic(self, slide, name, x=None, y=None, w=None):
         path = os.path.join(VISUALS, name)
+        # Weeks 15/16 reserve the lower band for takeaways and page labels.
+        # Fit rather than crop pictures; preserve aspect ratio.
+        if self.cfg["week"] in (15, 16):
+            from PIL import Image
+            with Image.open(path) as image:
+                ratio = image.height / image.width
+            w = min(w, (6.45 - y) / ratio)
         if x is None:
             x = (SW - w) / 2.0
         return slide.shapes.add_picture(path, Inches(x), Inches(y), Inches(w))

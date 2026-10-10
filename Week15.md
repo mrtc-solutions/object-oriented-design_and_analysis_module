@@ -506,54 +506,38 @@ Student account is active.
 
 Main Success Scenario
 
-1. Student selects "Register Course".
+1. The student selects "Register Course".
 
+2. The system displays available courses, and the student selects one.
 
-2. System displays available courses.
+3. The system verifies that the course is open and that the student satisfies its prerequisites.
 
+4. The system checks for an existing active registration.
 
-3. Student selects a course.
+5. The system atomically reserves a seat. A separate capacity check followed by a later update is not sufficient because simultaneous requests could overbook the final seat.
 
+6. The system creates and saves the Registration in the same transaction as the seat reservation.
 
-4. System checks whether the course exists.
-
-
-5. System checks prerequisites.
-
-
-6. System checks course capacity.
-
-
-7. System checks whether the student is already registered.
-
-
-8. System creates registration.
-
-
-9. System updates course enrolment.
-
-
-10. System displays confirmation.
+7. After the transaction commits, the system sends confirmation and displays the result.
 
 
 
 
 ---
 
-16. Alternative Flow
+16. Alternative Flow — Course Full
 
-Suppose the course is full.
+Suppose the final seat is claimed by another request before this student's seat reservation is committed.
 
 Student selects course
        ↓
-System checks capacity
+System requests atomic Course.reserveSeat()
        ↓
-Course FULL
+No seat can be reserved
        ↓
-System rejects registration
+System rejects the request without creating or saving a Registration
        ↓
-System displays:
-"Course is currently full."
+System displays: "Course is currently full."
 
 
 ---
@@ -579,23 +563,29 @@ PART G — IDENTIFYING OBJECTS
 
 18. Candidate Classes
 
-From the requirements, we can identify:
+From the requirements, we can identify these domain classes:
 
 Student
 Course
 Registration
 Programme
-Prerequisite
+PrerequisiteRule (if rules are compound)
 Administrator
+Lecturer
 
 Potential technical/application classes include:
 
 RegistrationController
 RegistrationService
+StudentRepository
 CourseRepository
 RegistrationRepository
 NotificationService
 AuthenticationService
+
+For the worked design, `RegistrationController.requestRegistration(courseCode)` receives the system request, `RegistrationService.registerStudent(studentId, courseCode)` coordinates it, and `NotificationService.sendConfirmation(registration)` sends a message only after the registration transaction commits.
+
+A candidate is not automatically a class: retain a class only when it has a clear domain meaning or software responsibility.
 
 
 ---
@@ -624,7 +614,7 @@ RegistrationController
 RegistrationRepository
 NotificationService
 
-Students should not confuse these.
+Students should not confuse these. If a sequence diagram uses a design object such as RegistrationService, that object should have a clear responsibility and a corresponding design-class/interface representation.
 
 
 ---
@@ -639,10 +629,13 @@ Student
 - name : String
 - email : String
 - programme : Programme
+- completedCourses : Course[*]
 --------------------------------
-+ registerCourse()
-+ dropCourse()
-+ viewRegistration()
++ isEligibleFor(course : Course) : Boolean
++ dropCourse(course : Course) : Result
++ viewRegistration() : Registration[*]
+
+Eligibility can depend on completed prerequisites and other explicit university rules. Do not place unrelated persistence or notification work inside Student.
 
 
 ---
@@ -655,12 +648,17 @@ Course
 - courseName : String
 - credits : Integer
 - capacity : Integer
+- enrolledCount : Integer
 - status : CourseStatus
 --------------------------------
-+ isAvailable()
-+ checkCapacity()
-+ addStudent()
-+ removeStudent()
++ isOpen() : Boolean
++ hasCapacity() : Boolean
++ reserveSeat() : Boolean
++ releaseSeat() : void
++ openRegistration() : void
++ closeRegistration() : void
+
+`hasCapacity()` can support a query or display, but the actual booking must use an atomic `reserveSeat()` operation. A separate check followed later by an update can allow two concurrent requests to take the same final seat.
 
 
 ---
@@ -673,8 +671,11 @@ Registration
 - registrationDate : Date
 - status : RegistrationStatus
 --------------------------------
-+ confirm()
-+ cancel()
++ create(student, course) : Registration
++ confirm() : void
++ cancel() : void
+
+Each Registration refers to exactly one Student and one Course. Keep cancelled registrations as history if the institution requires an audit trail; do not silently delete them.
 
 
 ---
@@ -683,10 +684,12 @@ Registration
 
 RegistrationService
 --------------------------------
-+ registerStudent()
-+ dropStudent()
-+ checkEligibility()
-+ checkDuplicate()
++ registerStudent(studentId, courseCode) : Result
++ dropStudent(studentId, courseCode) : Result
++ checkEligibility(student, course) : Boolean
++ checkDuplicate(student, course) : Boolean
+
+The service coordinates the use case. It validates the request, asks the domain objects/repositories for the needed facts, and returns a clear success or rejection result.
 
 
 ---
@@ -695,10 +698,12 @@ RegistrationService
 
 RegistrationRepository
 --------------------------------
-+ save()
-+ findByStudent()
-+ findByCourse()
-+ delete()
++ save(registration) : void
++ existsActiveFor(student, course) : Boolean
++ findByStudent(student) : Registration[*]
++ findByCourse(course) : Registration[*]
+
+A preliminary `existsActiveFor()` query is useful for a clear response, but it is not sufficient to prevent simultaneous duplicate requests. Enforce the active `(student, course)` uniqueness rule in the same transaction (for example, with a database unique constraint) and return a clear rejection if it is violated.
 
 Notice what has happened.
 
@@ -706,7 +711,7 @@ We have moved from:
 
 "Register a course"
 
-to a much more detailed design:
+to a more detailed design:
 
 Controller
      ↓
@@ -716,6 +721,8 @@ Domain objects
      ↓
 Repository
 
+The class model must also show how Student, Course and Registration relate; a sequence diagram must not introduce unexplained operations or objects.
+
 
 ---
 
@@ -723,42 +730,38 @@ PART I — ASSOCIATIONS
 
 25. Student and Registration
 
-A student can have many registrations.
+A student can have many registrations, while each registration is for exactly one student:
 
-Student 1 ───────── 0..*
-Registration
+Student 1 ───────── 0..* Registration
 
-Meaning:
-
-> One student may have zero or many registration records.
-
-
+Read the multiplicity at each end carefully: one Student may have zero or many Registration records; every Registration links back to one Student.
 
 
 ---
 
 26. Course and Registration
 
-A course can have many registrations:
+A course can have many registrations, while each registration is for exactly one course:
 
-Course 1 ───────── 0..*
-Registration
+Course 1 ───────── 0..* Registration
 
-Therefore:
+Therefore, Registration resolves the many-to-many relationship between Student and Course:
 
-Student
-   1
-   |
-   | 0..*
-Registration
-   0..*
-   |
-   | 1
-Course
+Student 1 ─── 0..* Registration 0..* ─── 1 Course
 
-This is more meaningful than simply drawing lines between classes.
+A student can register for many courses, and a course can have many students over time. Each individual Registration connects one student with one course. If cancelled registrations are retained, state whether the multiplicities count historical records or only active registrations.
 
-Students must understand the multiplicity.
+
+Prerequisites and completed-course history
+
+A student's academic history can be represented by a `completedCourses : Course[*]` association. A course can require zero or more prerequisite courses, and any course may be a prerequisite for many other courses:
+
+```text
+Student 0..* --completedCourses--> 0..* Course
+Course 0..* --prerequisiteOf--> 0..* Course
+```
+
+`Student.isEligibleFor(course)` compares the student's completed-course history with the course's prerequisite rule. If the institution supports complex conditions (such as “Course A and either Course B or Course C”), model those rules explicitly with a `PrerequisiteRule` class rather than hiding the policy in an unexplained Boolean check.
 
 
 ---
@@ -831,37 +834,32 @@ Now we ask:
 
 
 
-A simplified interaction:
+A sequence diagram should show a complete scenario, including its decision points. This design-level trace is consistent with the classes and operations introduced above:
 
-Student
-   |
-   | register(course)
-   ↓
-RegistrationController
-   |
-   | registerStudent()
-   ↓
-RegistrationService
-   |
-   | checkEligibility()
-   ↓
-Student
-   |
-   | eligible
-   ↓
-Course
-   |
-   | checkCapacity()
-   ↓
-RegistrationService
-   |
-   | createRegistration()
-   ↓
-Registration
-   |
-   | save()
-   ↓
-RegistrationRepository
+```text
+Student -> RegistrationController: requestRegistration(courseCode)
+RegistrationController -> RegistrationService: registerStudent(studentId, courseCode)
+RegistrationService -> Student: isEligibleFor(course)
+Student --> RegistrationService: eligible / not eligible
+RegistrationService -> RegistrationRepository: existsActiveFor(student, course)
+RegistrationRepository --> RegistrationService: true / false
+RegistrationService -> Course: reserveSeat()
+Course --> RegistrationService: seatReserved / full
+
+alt [eligible AND not already registered AND seatReserved]
+    RegistrationService -> Registration: create(student, course)
+    RegistrationService -> RegistrationRepository: save(registration)
+    RegistrationService -> NotificationService: sendConfirmation(registration)
+    RegistrationService --> RegistrationController: success
+else [prerequisite failed OR duplicate OR course full]
+    RegistrationService --> RegistrationController: rejected(reason)
+end
+RegistrationController --> Student: display result
+```
+
+In a detailed UML sequence diagram, use an `alt` combined fragment (or clearly labelled guarded branches) for the success and rejection paths. The class model should contain a reasonable home for each participating design object and message. Send confirmation only after the registration transaction commits.
+
+**Concurrency and integrity rule:** do not rely on `hasCapacity()` followed later by an unrelated increment. `Course.reserveSeat()` must check and claim a seat atomically, or the service must use an equivalent transaction/locking strategy. Also enforce the active-registration uniqueness rule atomically—for example, with a unique `(studentId, courseCode)` constraint or an equivalent transactional operation—because a preliminary duplicate query alone can race. Coordinate seat reservation and persistence in one transaction; if saving fails, release/roll back the claimed seat so the count and registration records cannot diverge. If the last seat has already been claimed, the second request receives `full` and must not create a Registration.
 
 
 ---
@@ -870,23 +868,41 @@ RegistrationRepository
 
 Because it tells the developer:
 
-> Which object talks to which other object, and in what order?
+> Which object talks to which other object, in what order, and what happens on success or failure?
 
 
 
 The class diagram told us:
 
-> What classes exist.
+> What classes and relationships exist.
 
 
 
 The sequence diagram tells us:
 
-> How those classes cooperate.
+> How those classes cooperate in one scenario.
 
 
 
-That distinction should be very clear to students.
+The messages in the sequence must correspond to plausible operations on the lifelines' classes. The state model must allow the resulting state changes; for example, reserving the last seat can move Course from Available to Full.
+
+
+---
+
+Cross-check with the Activity Workflow
+
+A compatible registration activity is:
+
+```text
+Start -> authenticate -> select course -> verify course is open
+     -> check prerequisites -> check duplicate registration
+     -> reserve seat atomically
+     -> create and save Registration
+     -> commit seat + Registration transaction
+     -> send confirmation -> End
+```
+
+At each decision, a failed guard returns a clear rejection and does not create or save a new Registration. The activity diagram focuses on the workflow; the sequence diagram identifies which objects carry it out. These are complementary views, not two independent versions of the same drawing.
 
 
 ---
@@ -895,60 +911,43 @@ PART L — STATE MACHINE
 
 31. Course Lifecycle
 
-A course can have different states.
+A course can have different states:
 
-Created
-   ↓
-Available
-   ↓
-Full
-   ↓
-Closed
+```text
+[*] -> Created -> Available -> Full
+                          ^       |
+                          |       |
+                          +-------+
+                     [seat released]
+
+Available -> Closed
+Full -> Closed
+```
+
+The closing transitions occur when the registration period ends. A course may also be closed by an authorised administrator if the business rules allow it.
 
 
 ---
 
-32. State Transitions
+32. State Transitions and Guards
 
-Created → Available
+Created -> Available
 
-Event:
+Event: `openRegistration` from an authorised administrator.
 
-> Administrator opens registration.
+Available -> Full
 
+Event: `reserveSeat` with guard `[enrolledCount == capacity]` after the final seat is successfully claimed.
 
+Full -> Available
 
-Available → Full
+Event: `releaseSeat` when a confirmed registration is dropped and a seat becomes available.
 
-Event:
+Available -> Closed; Full -> Closed
 
-> Last available seat is taken.
+Event: `registrationPeriodEnds`.
 
-
-
-Full → Available
-
-Event:
-
-> A student drops the course and a seat becomes available.
-
-
-
-Available → Closed
-
-Event:
-
-> Registration period ends.
-
-
-
-Full → Closed
-
-Event:
-
-> Registration period ends.
-
-
+The state and the count must agree: `enrolledCount` cannot exceed `capacity`, and a successful atomic reservation is the only operation that may consume a seat. This links the class, state and sequence models.
 
 
 ---
@@ -961,15 +960,13 @@ status : CourseStatus
 
 in the class.
 
-But that doesn't explain:
+But that does not explain:
 
 > What causes the status to change?
 
 
 
-The state machine provides that dynamic information.
-
-This demonstrates why multiple models are useful.
+The state machine supplies event/guard-driven behaviour. The class diagram shows that the state is stored; the sequence/activity models show how a request causes a state transition. This demonstrates why multiple models are useful.
 
 
 ---
@@ -978,35 +975,26 @@ PART M — ACTIVITY DIAGRAM
 
 34. Registration Workflow
 
-Start
-  ↓
-Login
-  ↓
-View Courses
-  ↓
-Select Course
-  ↓
-Check Prerequisite
-  ↓
-Prerequisite satisfied?
- ┌───────────┴───────────┐
-No                       Yes
-↓                         ↓
-Reject              Check Capacity
-                         ↓
-                    Space available?
-                    ┌─────┴─────┐
-                   No           Yes
-                   ↓             ↓
-                 Reject      Create Registration
-                                  ↓
-                             Save Registration
-                                  ↓
-                            Send Confirmation
-                                  ↓
-                                 End
+```text
+Initial
+  -> Authenticate student
+  -> View and select an open course
+  -> Check prerequisites
+  -> [eligible?]
+       No  -> show rejection -> Final
+       Yes -> check for an existing active registration
+              -> [duplicate?]
+                   Yes -> show rejection -> Final
+                   No  -> reserve seat atomically
+                          -> [seat reserved?]
+                               No  -> show course-full message -> Final
+                               Yes -> create and save Registration
+                                      -> commit seat + Registration transaction
+                                      -> send confirmation
+                                      -> Final
+```
 
-The activity diagram therefore describes the workflow.
+The activity diagram describes the workflow and its alternative paths. The reservation action must be atomic so two concurrent requests cannot both pass a stale capacity check. Confirmation is sent only after the registration transaction commits.
 
 
 ---
@@ -1103,34 +1091,42 @@ RegistrationController
        ↓
 RegistrationService
        ↓
-Course
+Student + RegistrationRepository + Course
        ↓
-Registration
+Registration + NotificationService
 
 
 ---
 
 39. Sequence → Classes
 
-The sequence reveals:
+The design-level sequence is supported by these classes/interfaces:
 
 RegistrationController
 RegistrationService
+Student
+RegistrationRepository
 Course
 Registration
+NotificationService
+
+Every design object on the sequence lifelines should have a clear responsibility and a corresponding class or interface in the design model.
 
 
 ---
 
 40. Sequence → Operations
 
-Messages become candidate operations:
+Messages become candidate operations on those lifelines:
 
-registerStudent()
-checkEligibility()
-checkCapacity()
-createRegistration()
-save()
+requestRegistration(courseCode)
+registerStudent(studentId, courseCode)
+isEligibleFor(course)
+existsActiveFor(student, course)
+reserveSeat()
+create(student, course)
+save(registration)
+sendConfirmation(registration)
 
 
 ---
@@ -1147,6 +1143,20 @@ Kotlin
 TypeScript
 
 The exact language does not change the OOAD principle.
+
+
+Traceability Matrix — Worked Example
+
+| Requirement | Use case | Design/model evidence | Consistency question |
+|---|---|---|---|
+| FR4: check prerequisites | Register Course | Student.isEligibleFor(course); guarded success path in the sequence | Does a failed prerequisite stop registration? |
+| FR5: register an eligible student | Register Course | RegistrationService.registerStudent(); Registration class; saved Registration | Does the use case lead to a persistent registration? |
+| FR6: prevent duplicates | Register Course | RegistrationRepository.existsActiveFor(student, course) plus atomic uniqueness constraint | Is an existing or concurrent duplicate rejected? |
+| FR7: enforce capacity | Register Course / Drop Course | Course.reserveSeat() and releaseSeat(); Course state Available/Full | Can concurrent requests exceed capacity? |
+| FR9: confirm the result | Register Course | NotificationService.sendConfirmation() after transaction commit | Is confirmation sent only for a successful registration? |
+| NFR: protect account access | Login / protected actions | AuthenticationService and role checks at the application boundary | Are privileged actions limited to authorised roles? |
+
+This matrix is a small traceability record, not a requirement to repeat every requirement in every diagram. Trace each requirement to the model element or design decision that satisfies it, and show where it is tested or validated.
 
 
 ---

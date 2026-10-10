@@ -165,14 +165,14 @@ def slides(d):
 
     # 24. mock exam
     s = d.slide()
-    d.header(s, "Mock Examination", "Four sections")
+    d.header(s, "Full-Length Practice Papers", "Two parallel forms; sit one under timed conditions")
     d.bullets(s, 0.9, 1.6, 11.6, 4.9, [
-        ("Section A: ", "20 short answers (OOAD, encapsulation, UML, actor, use case, multiplicity…)."),
-        ("Section B: ", "differentiate (class/object, aggregation/composition, include/extend…)."),
-        ("Section C: ", "long answers (four principles, role of UML, Unified Process)."),
-        ("Section D: ", "full case study with actors, diagrams and relationships."),
+        ("Paper A: ", "Community Clinic Appointment System."),
+        ("Paper B: ", "Campus Equipment Lending System."),
+        ("Format: ", "100 marks; Question 1 compulsory (40); choose any three of Questions 2–5 (20 each)."),
+        ("Approval: ", "3 hours is a proposed duration; confirm Faculty rules. Marking guide is lecturer-only."),
     ], size=16, gap=14)
-    d.takeaway(s, "Practise under timed conditions.")
+    d.takeaway(s, "The course outline weights the examination at 60% of the module grade.")
 
     # 25. summary
     s = d.slide()

@@ -28,7 +28,7 @@ def diamond(ax, x, y, w, h, fc=WHITE, ec=MAROON, lw=1.6, z=6):
 
 
 def uc(ax, x, y, w, name, attrs=None, ops=None, name_color=WHITE, fill=WHITE,
-       ec=MAROON, line_h=17, pad=8, name_size=11.5):
+       ec=MAROON, line_h=17, pad=8, name_size=11.5, content_size=10):
     attrs = attrs or []
     ops = ops or []
     h_name = 27
@@ -42,11 +42,11 @@ def uc(ax, x, y, w, name, attrs=None, ops=None, name_color=WHITE, fill=WHITE,
     ax.plot([x, x + w], [y + h_ops, y + h_ops], color=ec, lw=1.0, zorder=7)
     yy = y + h_attrs + h_ops - pad
     for a in attrs:
-        t(ax, x + 9, yy, a, size=10, color=INK, fam=MONO, ha="left", z=7)
+        t(ax, x + 9, yy, a, size=content_size, color=INK, fam=MONO, ha="left", z=7)
         yy -= line_h
     yy = y + h_ops - pad
     for o in ops:
-        t(ax, x + 9, yy, o, size=10, color=MAROON_SOFT, fam=MONO, ha="left", z=7)
+        t(ax, x + 9, yy, o, size=content_size, color=MAROON_SOFT, fam=MONO, ha="left", z=7)
         yy -= line_h
     return (x, y, w, h)
 
@@ -306,13 +306,12 @@ def use_case_spec():
 
     box(ax, 438, 96, 380, 246, WHITE, ec=MAROON, lw=1.8, r=14, z=5)
     t(ax, 628, 318, "MAIN SUCCESS SCENARIO", size=12, color=MAROON, fam=H_B, z=6)
-    steps = ["1. Student selects \u201cRegister Course\u201d", "2. System displays available courses",
-             "3. Student selects a course", "4. System checks the course exists",
-             "5. System checks prerequisites", "6. System checks capacity",
-             "7. Checks for duplicate registration", "8. System creates registration",
-             "9. Updates course enrolment", "10. System displays confirmation"]
+    steps = ["1. Student selects an open course", "2. System checks prerequisites",
+             "3. System checks for an active duplicate", "4. Course.reserveSeat() atomically claims a seat",
+             "5. Create and save Registration in one transaction",
+             "6. Send confirmation only after the transaction commits"]
     for i, s in enumerate(steps):
-        t(ax, 628, 282 - i * 20, s, size=9, color=INK, fam=BODY, z=7)
+        t(ax, 628, 282 - i * 24, s, size=8.8, color=INK, fam=BODY, z=7)
 
     box(ax, 22, 16, 796, 26, MAROON_DARK, r=12, z=5)
     t(ax, W / 2, 29, "Do not stop at the diagram \u2014 document important use cases.",
@@ -328,26 +327,33 @@ def candidate_classes():
     fig, ax = canvas(W / 100, H / 100)
     title(ax, W, "Candidate Classes", sub="Domain classes vs technical classes")
 
-    box(ax, 22, 96, 380, 246, WHITE, ec=MAROON, lw=1.8, r=14, z=5)
-    t(ax, 212, 314, "DOMAIN CLASSES", size=12.5, color=MAROON, fam=H_B, z=6)
-    t(ax, 212, 278, "from the problem domain", size=10.5, color=GREY, fam=B_IT, z=7)
-    for i, s in enumerate(["Student", "Course", "Registration", "Programme", "Prerequisite", "Administrator"]):
-        c, r = divmod(i, 3)
-        x = 60 + r * 116
-        y = 236 - c * 40
+    # Leave a clear band under the title/subtitle so the panels cannot collide with the heading.
+    box(ax, 22, 72, 380, 246, WHITE, ec=MAROON, lw=1.8, r=14, z=5)
+    t(ax, 212, 290, "DOMAIN CLASSES", size=12.5, color=MAROON, fam=H_B, z=6)
+    t(ax, 212, 258, "from the problem domain", size=10.5, color=GREY, fam=B_IT, z=7)
+    domain = ["Student", "Course", "Registration", "Programme", "PrerequisiteRule",
+              "Administrator", "Lecturer"]
+    for i, s in enumerate(domain):
+        row, col = divmod(i, 3)
+        x = 60 + col * 116
+        y = 220 - row * 40
         box(ax, x, y - 12, 106, 26, MAROON_TINT, ec=MAROON, lw=1.2, r=8, z=6)
-        t(ax, x + 53, y, s, size=9.5, color=INK, fam=BODY, z=7)
+        t(ax, x + 53, y, s, size=8.8 if s == "PrerequisiteRule" else 9.5,
+          color=INK, fam=BODY, z=7)
 
-    box(ax, 438, 96, 380, 246, MAROON_TINT, ec=MAROON, lw=1.8, r=14, z=5)
-    t(ax, 628, 314, "TECHNICAL / APPLICATION", size=12.5, color=MAROON_DARK, fam=H_B, z=6)
-    t(ax, 628, 278, "support implementation", size=10.5, color=GREY, fam=B_IT, z=7)
-    for i, s in enumerate(["RegistrationController", "RegistrationService", "CourseRepository",
-                           "RegistrationRepository", "NotificationService", "AuthenticationService"]):
-        c, r = divmod(i, 2)
-        x = 490 + r * 138
-        y = 240 - c * 40
+    box(ax, 438, 72, 380, 246, MAROON_TINT, ec=MAROON, lw=1.8, r=14, z=5)
+    t(ax, 628, 290, "TECHNICAL / APPLICATION", size=12.5, color=MAROON_DARK, fam=H_B, z=6)
+    t(ax, 628, 258, "support implementation", size=10.5, color=GREY, fam=B_IT, z=7)
+    technical = ["RegistrationController", "RegistrationService", "CourseRepository",
+                 "RegistrationRepository", "NotificationService", "AuthenticationService",
+                 "StudentRepository"]
+    for i, s in enumerate(technical):
+        row, col = divmod(i, 2)
+        x = 490 + col * 138
+        y = 220 - row * 36
         box(ax, x, y - 12, 128, 26, WHITE, ec=MAROON, lw=1.2, r=8, z=6)
-        t(ax, x + 64, y, s, size=8.5, color=MAROON_SOFT, fam=BODY, z=7)
+        t(ax, x + 64, y, s, size=8.1 if s in ("RegistrationRepository", "AuthenticationService") else 8.5,
+          color=MAROON_SOFT, fam=BODY, z=7)
 
     box(ax, 22, 22, 796, 26, MAROON_DARK, r=12, z=5)
     t(ax, W / 2, 35, "Do not confuse the problem-domain concepts with the implementation helpers.",
@@ -363,29 +369,41 @@ def class_model():
     fig, ax = canvas(W / 100, H / 100)
     title(ax, W, "The Class Model", sub="Controller -> Service -> Domain -> Repository")
 
-    uc(ax, 330, 372, 150, "RegistrationController", ops=["+registerStudent()"], name_size=10)
-    arrow(ax, 405, 370, 405, 358, lw=1.8, ms=12, z=8)
-    uc(ax, 320, 276, 170, "RegistrationService",
-       ops=["+registerStudent()", "+dropStudent()", "+checkEligibility()", "+checkDuplicate()"], name_size=10)
-    arrow(ax, 380, 274, 200, 200, lw=1.6, ms=11, z=8)
-    arrow(ax, 470, 274, 590, 200, lw=1.6, ms=11, z=8)
-    uc(ax, 80, 128, 150, "Student",
-       attrs=["-studentId", "-name", "-email", "-programme"],
-       ops=["+registerCourse()", "+dropCourse()", "+viewRegistration()"], name_size=10)
-    uc(ax, 250, 128, 150, "Course",
-       attrs=["-courseCode", "-courseName", "-credits", "-capacity", "-status"],
-       ops=["+isAvailable()", "+checkCapacity()", "+addStudent()", "+removeStudent()"], name_size=10)
-    uc(ax, 420, 128, 150, "Registration",
+    # Draw dependencies first so class boxes remain crisp and labels never cross the nodes.
+    arrow(ax, 420, 310, 420, 293, lw=1.7, ms=11, z=4)
+    arrow(ax, 322, 198, 101, 178, lw=1.5, ms=10, z=4)
+    arrow(ax, 365, 198, 261, 192, lw=1.5, ms=10, z=4)
+    arrow(ax, 420, 198, 421, 178, lw=1.5, ms=10, z=4)
+    arrow(ax, 470, 198, 581, 126, lw=1.5, ms=10, z=4)
+    arrow(ax, 505, 198, 741, 98, lw=1.5, ms=10, z=4)
+
+    uc(ax, 345, 310, 150, "RegistrationController",
+       ops=["+requestRegistration()"], name_size=8.0, line_h=14, pad=5, content_size=8.2)
+    uc(ax, 300, 198, 240, "RegistrationService",
+       ops=["+registerStudent(...)" , "+dropStudent(...)" ,
+            "+checkEligibility(...)" , "+checkDuplicate(...)"],
+       name_size=10, line_h=14, pad=5, content_size=9.2)
+    uc(ax, 24, 45, 154, "Student",
+       attrs=["-studentId", "-name", "-completedCourses"],
+       ops=["+isEligibleFor()", "+dropCourse()", "+viewRegistration()"],
+       name_size=10, line_h=14, pad=5, content_size=7.8)
+    uc(ax, 184, 45, 154, "Course",
+       attrs=["-courseCode", "-capacity", "-enrolledCount", "-status"],
+       ops=["+isOpen()", "+reserveSeat()", "+releaseSeat()"],
+       name_size=10, line_h=14, pad=5, content_size=7.8)
+    uc(ax, 344, 45, 154, "Registration",
        attrs=["-registrationId", "-registrationDate", "-status"],
-       ops=["+confirm()", "+cancel()"], name_size=10)
-    uc(ax, 590, 128, 150, "RegistrationRepository",
-       ops=["+save()", "+findByStudent()", "+findByCourse()", "+delete()"], name_size=10)
-    t(ax, 155, 106, "domain objects", size=9, color=GREY, fam=B_IT, z=7)
-    t(ax, 665, 106, "repository", size=9, color=GREY, fam=B_IT, z=7)
+       ops=["+create()", "+confirm()", "+cancel()"],
+       name_size=10, line_h=14, pad=5, content_size=7.8)
+    uc(ax, 504, 45, 154, "RegistrationRepository",
+       ops=["+existsActiveFor()", "+save()", "+findByStudent()"],
+       name_size=7.5, line_h=14, pad=5, content_size=7.5)
+    uc(ax, 664, 45, 154, "NotificationService",
+       ops=["+sendConfirmation()"], name_size=8.0, line_h=14, pad=5, content_size=7.5)
 
     box(ax, 22, 12, 796, 26, MAROON_DARK, r=12, z=5)
-    t(ax, W / 2, 25, "From \u201cRegister a course\u201d to a detailed, implementation-ready design.",
-      size=11, color=GOLD_LIGHT, fam=B_SB)
+    t(ax, W / 2, 25, "Each operation has an owner; reserve seats atomically and notify only after commit.",
+      size=10.8, color=GOLD_LIGHT, fam=B_SB)
     return save(fig, "w15_class_model.png")
 
 
@@ -448,29 +466,53 @@ def inheritance():
 def sequence():
     W, H = 840, 470
     fig, ax = canvas(W / 100, H / 100)
-    title(ax, W, "Sequence Diagram: Register Course", sub="Which object talks to which, in what order")
+    title(ax, W, "Sequence Diagram: Register Course", sub="Success, validation and an alternative rejection path")
 
-    objs = ["Student", "Reg.Controller", "Reg.Service", "Course", "Registration", "Reg.Repository"]
-    xs = [110, 250, 380, 510, 640, 750]
-    top = 388
+    objs = ["Student", "Controller", "Service", "Student (domain)",
+            "Reg.Repo", "Course", "Registration", "Notify"]
+    xs = [54, 156, 258, 360, 462, 564, 666, 768]
+    top = 340
     for x, name in zip(xs, objs):
-        box(ax, x - 58, top, 116, 26, MAROON, r=6, z=6)
-        t(ax, x, top + 13, name, size=8.5, color=WHITE, fam=B_SB, z=7)
-        ax.plot([x, x], [top - 6, 118], color=GREY, lw=1.0, ls=":", zorder=4)
+        box(ax, x - 46, top, 92, 26, MAROON, r=6, z=6)
+        t(ax, x, top + 13, name, size=6.8, color=WHITE, fam=B_SB, z=7)
+        ax.plot([x, x], [top - 6, 86], color=GREY, lw=1.0, ls=":", zorder=4)
 
-    msgs = [("register(course)", 110, 250, 356),
-            ("registerStudent()", 250, 380, 328),
-            ("checkEligibility()", 380, 510, 300),
-            ("checkCapacity()", 510, 380, 272),
-            ("createRegistration()", 380, 640, 244),
-            ("save()", 640, 750, 216)]
-    for label, x1, x2, y in msgs:
-        arrow(ax, x1 + 2, y, x2 - 2, y, lw=1.6, ms=11, z=8)
-        t(ax, (x1 + x2) / 2, y + 11, label, size=8.5, color=MAROON_SOFT, fam=MONO, z=8)
+    # Messages are ordered top-to-bottom. Return messages travel left and use a lighter dashed line.
+    msgs = [
+        ("requestRegistration()", 0, 1),
+        ("registerStudent()", 1, 2),
+        ("isEligibleFor(course)", 2, 3),
+        ("eligible / not eligible", 3, 2),
+        ("existsActiveFor(student, course)", 2, 4),
+        ("false / true", 4, 2),
+        ("reserveSeat() [atomic]", 2, 5),
+        ("reserved / full", 5, 2),
+        ("create(student, course) [all guards pass]", 2, 6),
+        ("save(registration) [same transaction]", 2, 4),
+        ("sendConfirmation() [after commit]", 2, 7),
+        ("success / rejected(reason)", 2, 1),
+        ("display result", 1, 0),
+    ]
+    for i, (label, source, target) in enumerate(msgs):
+        x1, x2 = xs[source], xs[target]
+        y = 316 - i * 18
+        returning = target < source
+        patch = FancyArrowPatch((x1 + (2 if target > source else -2), y),
+                                (x2 - (2 if target > source else -2), y),
+                                arrowstyle="-|>", mutation_scale=8,
+                                color=GREY if returning else MAROON,
+                                lw=1.25 if returning else 1.45,
+                                linestyle="--" if returning else "-", zorder=8)
+        ax.add_patch(patch)
+        t(ax, (x1 + x2) / 2, y + 8, label, size=6.4,
+          color=GREY if returning else MAROON_SOFT, fam=MONO, z=9)
 
-    box(ax, 22, 14, 796, 26, MAROON_DARK, r=12, z=5)
-    t(ax, W / 2, 27, "The class diagram says what classes exist; the sequence says how they cooperate.",
-      size=11, color=GOLD_LIGHT, fam=B_SB)
+    box(ax, 22, 48, 796, 30, MAROON_TINT, ec=GOLD, lw=1.1, r=8, z=5)
+    t(ax, W / 2, 63, "alt [all guards pass]: create + save + notify  |  [else]: reject; no new Registration",
+      size=7.9, color=MAROON_DARK, fam=B_SB, z=7)
+    box(ax, 22, 14, 796, 25, MAROON_DARK, r=12, z=5)
+    t(ax, W / 2, 27, "Commit seat + Registration together; roll back on failure and notify only after commit.",
+      size=9.3, color=GOLD_LIGHT, fam=B_SB)
     return save(fig, "w15_sequence.png")
 
 
@@ -497,13 +539,16 @@ def state_machine():
     t(ax, 274, 240, "student drops", size=9, color=GREY, fam=B_IT, z=8)
     arrow(ax, 462, 270, 586, 270, lw=1.8, ms=12, z=8)
     t(ax, 524, 286, "period ends", size=9, color=GREY, fam=B_IT, z=8)
+    ax.plot([150, 150, 650, 650], [294, 320, 320, 294], color=MAROON, lw=1.5, zorder=7)
+    arrow(ax, 650, 320, 650, 294, lw=1.5, ms=10, z=8)
+    t(ax, 400, 330, "period ends", size=9, color=GREY, fam=B_IT, z=8)
 
     box(ax, 22, 130, 796, 44, MAROON_TINT, r=12, z=5)
-    t(ax, W / 2, 152, "status: CourseStatus in the class is not enough \u2014 the state machine explains WHY it changes.",
+    t(ax, W / 2, 152, "reserveSeat() is atomic; enrolledCount must never exceed capacity.",
       size=11, color=MAROON_DARK, fam=B_SB, z=7)
 
     box(ax, 22, 18, 796, 26, MAROON_DARK, r=12, z=5)
-    t(ax, W / 2, 31, "Created -> Available -> Full / Closed \u2014 with meaningful triggering events.",
+    t(ax, W / 2, 31, "Course states, seat operations and registration messages must remain consistent.",
       size=11, color=GOLD_LIGHT, fam=B_SB)
     return save(fig, "w15_state_machine.png")
 
@@ -514,47 +559,53 @@ def state_machine():
 def activity():
     W, H = 840, 470
     fig, ax = canvas(W / 100, H / 100)
-    title(ax, W, "Registration Workflow (Activity Diagram)", sub="Step-by-step flow with decisions")
+    title(ax, W, "Registration Workflow (Activity Diagram)", sub="Guards, atomic seat reservation and alternative paths")
 
-    fnode(ax, 420, 440, r=10)
-    activities = ["Login", "View Courses", "Select Course", "Check Prerequisite"]
-    y = 410
-    for i, a in enumerate(activities):
-        box(ax, 320, y - 16, 200, 32, MAROON if i % 2 == 0 else MAROON_SOFT, r=14, z=6)
-        t(ax, 420, y, a, size=10.5, color=WHITE, fam=B_SB, z=7)
-        arrow(ax, 420, y - 17, 420, y - 27, lw=1.6, ms=11, z=8)
-        y -= 44
-    diamond(ax, 392, y - 42, 56, 56, z=6)
-    t(ax, 420, y - 14, "prereq?", size=9, color=MAROON_DARK, fam=B_SB, z=8)
-    t(ax, 360, y - 14, "No", size=9, color=MAROON_SOFT, fam=B_SB, z=8)
-    box(ax, 240, y - 74, 110, 30, MAROON_SOFT, r=10, z=6)
-    t(ax, 295, y - 59, "Reject", size=10, color=WHITE, fam=B_SB, z=7)
-    arrow(ax, 392, y - 14, 352, y - 59, lw=1.6, ms=11, z=8)
-    t(ax, 468, y - 14, "Yes", size=9, color=MAROON_DARK, fam=B_SB, z=8)
-    box(ax, 320, y - 116, 200, 32, MAROON, r=14, z=6)
-    t(ax, 420, y - 100, "Check Capacity", size=10.5, color=WHITE, fam=B_SB, z=7)
-    arrow(ax, 420, y - 42, 420, y - 84, lw=1.6, ms=11, z=8)
-    diamond(ax, 392, y - 156, 56, 56, z=6)
-    t(ax, 420, y - 128, "space?", size=9, color=MAROON_DARK, fam=B_SB, z=8)
-    t(ax, 560, y - 128, "Yes", size=9, color=MAROON_DARK, fam=B_SB, z=8)
-    t(ax, 420, y - 172, "No", size=9, color=MAROON_SOFT, fam=B_SB, z=8)
-    box(ax, 300, y - 168, 100, 26, MAROON_SOFT, r=10, z=6)
-    t(ax, 350, y - 155, "Reject", size=10, color=WHITE, fam=B_SB, z=7)
-    arrow(ax, 420, y - 156, 402, y - 168, lw=1.6, ms=11, z=8)
-    box(ax, 600, y - 130, 150, 32, MAROON, r=14, z=6)
-    t(ax, 675, y - 114, "Create Registration", size=9.5, color=WHITE, fam=B_SB, z=7)
-    arrow(ax, 448, y - 128, 598, y - 114, lw=1.6, ms=11, z=8)
-    arrow(ax, 675, y - 146, 675, y - 170, lw=1.6, ms=11, z=8)
-    box(ax, 600, y - 200, 150, 32, MAROON_SOFT, r=14, z=6)
-    t(ax, 675, y - 184, "Save Registration", size=9.5, color=WHITE, fam=B_SB, z=7)
-    arrow(ax, 675, y - 216, 675, y - 240, lw=1.6, ms=11, z=8)
-    box(ax, 600, y - 270, 150, 32, MAROON, r=14, z=6)
-    t(ax, 675, y - 254, "Send Confirmation", size=9.5, color=WHITE, fam=B_SB, z=7)
-    inode(ax, 675, y - 300, r=8)
+    fnode(ax, 420, 340, r=8)
+    steps = [("Authenticate", 312), ("Select open course", 282),
+             ("Check eligibility + duplicate", 252)]
+    for i, (label, cy) in enumerate(steps):
+        box(ax, 300, cy - 13, 240, 26, MAROON if i != 2 else MAROON_SOFT, r=11, z=6)
+        t(ax, 420, cy, label, size=9.5, color=WHITE, fam=B_SB, z=7)
+        if i == 0:
+            arrow(ax, 420, 332, 420, cy + 13, lw=1.5, ms=10, z=8)
+        else:
+            previous_bottom = steps[i - 1][1] - 13
+            arrow(ax, 420, previous_bottom, 420, cy + 13, lw=1.5, ms=10, z=8)
 
-    box(ax, 22, 16, 796, 26, MAROON_DARK, r=12, z=5)
-    t(ax, W / 2, 29, "The activity diagram describes the workflow of the registration process.",
-      size=11, color=GOLD_LIGHT, fam=B_SB)
+    diamond(ax, 380, 185, 80, 48, z=6)
+    t(ax, 420, 216, "eligible &", size=8.2, color=MAROON_DARK, fam=B_SB, z=8)
+    t(ax, 420, 201, "unique?", size=8.2, color=MAROON_DARK, fam=B_SB, z=8)
+    arrow(ax, 420, 239, 420, 233, lw=1.5, ms=10, z=8)
+    t(ax, 315, 225, "No", size=8.5, color=MAROON_SOFT, fam=B_SB, z=8)
+    arrow(ax, 380, 209, 252, 209, lw=1.5, ms=10, z=8)
+    box(ax, 110, 192, 140, 34, MAROON_SOFT, r=10, z=6)
+    t(ax, 180, 209, "Reject request", size=9, color=WHITE, fam=B_SB, z=7)
+    t(ax, 476, 197, "Yes", size=8.5, color=MAROON_DARK, fam=B_SB, z=8)
+
+    arrow(ax, 420, 185, 420, 177, lw=1.5, ms=10, z=8)
+    box(ax, 300, 149, 240, 28, MAROON, r=11, z=6)
+    t(ax, 420, 163, "reserveSeat() atomically", size=9.3, color=WHITE, fam=B_SB, z=7)
+    arrow(ax, 420, 149, 420, 141, lw=1.5, ms=10, z=8)
+
+    diamond(ax, 380, 93, 80, 48, z=6)
+    t(ax, 420, 124, "seat", size=8.5, color=MAROON_DARK, fam=B_SB, z=8)
+    t(ax, 420, 109, "reserved?", size=8.5, color=MAROON_DARK, fam=B_SB, z=8)
+    t(ax, 315, 132, "No", size=8.5, color=MAROON_SOFT, fam=B_SB, z=8)
+    arrow(ax, 380, 117, 252, 117, lw=1.5, ms=10, z=8)
+    box(ax, 110, 100, 140, 34, MAROON_SOFT, r=10, z=6)
+    t(ax, 180, 117, "Reject: course full", size=8.6, color=WHITE, fam=B_SB, z=7)
+    t(ax, 476, 105, "Yes", size=8.5, color=MAROON_DARK, fam=B_SB, z=8)
+
+    arrow(ax, 420, 93, 420, 80, lw=1.5, ms=10, z=8)
+    box(ax, 300, 52, 240, 28, MAROON_SOFT, r=11, z=6)
+    t(ax, 420, 66, "Commit Registration, then notify", size=9.0, color=WHITE, fam=B_SB, z=7)
+    arrow(ax, 420, 52, 420, 40, lw=1.5, ms=10, z=8)
+    inode(ax, 420, 40, r=6)
+
+    box(ax, 22, 4, 796, 24, MAROON_DARK, r=11, z=5)
+    t(ax, W / 2, 16, "Failed guards reject the request; no new Registration is created or saved.",
+      size=10.2, color=GOLD_LIGHT, fam=B_SB)
     return save(fig, "w15_activity.png")
 
 
@@ -597,24 +648,24 @@ def traceability():
     title(ax, W, "Model Traceability", sub="Following one requirement through the whole design")
 
     steps = [
-        ("REQUIREMENT", "\u201cStudent must register for courses\u201d"),
+        ("REQUIREMENT", "FR5: register an eligible student"),
         ("USE CASE", "Register Course"),
-        ("SEQUENCE", "Student -> Controller -> Service -> Course -> Registration"),
-        ("CLASSES", "RegistrationController · RegistrationService · Course · Registration"),
-        ("OPERATIONS", "registerStudent() · checkEligibility() · checkCapacity() · createRegistration() · save()"),
-        ("IMPLEMENTATION", "Java · C# · Python · C++ · Kotlin · TypeScript"),
+        ("SEQUENCE", "Controller -> Service -> Course -> Registration"),
+        ("CLASSES", "RegistrationService · Course · Registration · Repository"),
+        ("OPERATIONS", "checkEligibility · existsActiveFor · reserveSeat · save"),
+        ("VALIDATION", "No duplicate registration; enrolledCount <= capacity"),
     ]
-    y = 372
+    y = 312
     for i, (hd, sub) in enumerate(steps):
-        box(ax, 250, y, 340, 52, MAROON if i % 2 == 0 else MAROON_SOFT, r=12, z=6)
-        t(ax, 420, y + 34, hd, size=10.5, color=GOLD_LIGHT, fam=H_SB, z=7)
-        t(ax, 420, y + 14, sub, size=9, color=WHITE, fam=BODY, z=7)
+        box(ax, 250, y, 340, 42, MAROON if i % 2 == 0 else MAROON_SOFT, r=10, z=6)
+        t(ax, 420, y + 29, hd, size=9.8, color=GOLD_LIGHT, fam=H_SB, z=7)
+        t(ax, 420, y + 12, sub, size=8.2, color=WHITE, fam=BODY, z=7)
         if i < len(steps) - 1:
-            arrow(ax, 420, y - 1, 420, y - 9, lw=1.8, ms=12, z=8)
-        y -= 60
+            arrow(ax, 420, y - 1, 420, y - 9, lw=1.6, ms=10, z=8)
+        y -= 53
 
     box(ax, 22, 14, 796, 26, MAROON_DARK, r=12, z=5)
-    t(ax, W / 2, 27, "The exact language does not change the OOAD principle.",
+    t(ax, W / 2, 27, "Trace each requirement into the design and a way to validate it.",
       size=11, color=GOLD_LIGHT, fam=B_SB)
     return save(fig, "w15_traceability.png")
 
