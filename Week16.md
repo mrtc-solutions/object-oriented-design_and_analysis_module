@@ -2062,133 +2062,28 @@ PART T — 16-WEEK JOURNEY
 
 73. What Students Have Covered
 
-The module can now be remembered as one continuous journey:
+The module follows the teaching files and course-outline sequence below. Some broad syllabus areas extend across more than one week; the sequence is cumulative rather than a claim that each topic belongs to only one class.
 
-Week 1
+| Week | Teaching focus | What it contributes to the OOAD journey |
+|---|---|---|
+| 1 | Business needs, software needs and object technology for business | Understand the problem, stakeholders, requirements and why object technology may help. |
+| 2 | Principles of object modelling | Identify useful objects, their characteristics and relationships; manage complexity through models. |
+| 3 | Modelling language — UML overview | Understand UML, its purpose and major diagram families. |
+| 4 | UML building blocks, rules, mechanisms and architecture | Apply UML things, relationships, well-formedness, common mechanisms and metamodel levels. |
+| 5 | Object-oriented analysis — object modelling I | Model classes/objects, notation, links, associations and generalisation/specialisation. |
+| 6 | Object-oriented analysis — object modelling II | Apply aggregation, inheritance, polymorphism and grouping. |
+| 7 | Dynamic modelling | Model events, states, operations, transitions, concurrency and structural/dynamic relationships. |
+| 8 | Behavioural modelling | Model use cases, actors, interactions, sequences, communication, activities and analysis documentation. |
+| 9 | Unified Software Development Process (USDP/UP) | Organise work through phases, iterations, workflows, artefacts, risk and reuse. |
+| 10 | Object-oriented design | Move from analysis toward a solution; integrate object, dynamic and behavioural models. |
+| 11 | Refining the object-oriented design | Refine classes, attributes, operations, responsibilities, interfaces, dependencies and design quality. |
+| 12 | Integrated object-oriented modelling and design | Check consistency, traceability, validation, packages and integration across models. |
+| 13 | Multilayer systems, reusable components and architectural design | Organise layers/components and evaluate reuse, adaptability, cohesion and coupling. |
+| 14 | Integrating object, dynamic and behavioural models into design | Transform a coherent analysis into a consistent, implementable design. |
+| 15 | Complete OOAD case study and CASE-tool implementation | Apply the complete process to a case and maintain an integrated model. |
+| 16 | Comprehensive revision, integrated case study and examination preparation | Consolidate the course and demonstrate independent analysis and design. |
 
-Business Needs
-
-Why organisations need information systems.
-
-↓
-
-Week 2
-
-Business Software Needs
-
-Understanding the characteristics and requirements of business software.
-
-↓
-
-Week 3
-
-Object Technology for Business
-
-Understanding how object orientation can support business systems.
-
-↓
-
-Week 4
-
-Principles of Object Modelling
-
-Objects, object models, identifying objects, managing complexity and modelling.
-
-↓
-
-Week 5
-
-Modelling Language — UML
-
-Understanding UML, its building blocks, rules, mechanisms and architecture.
-
-↓
-
-Week 6
-
-Object-Oriented Analysis — Object Modelling I
-
-Classes, objects, notation, links, associations and generalisation/specialisation.
-
-↓
-
-Week 7
-
-Object-Oriented Analysis — Object Modelling II
-
-Aggregation, inheritance, polymorphism and grouping.
-
-↓
-
-Week 8
-
-Dynamic Modelling
-
-Events, states, operations, concurrency and the relationship between structural and dynamic models.
-
-↓
-
-Week 9
-
-Behavioural Modelling
-
-Use cases, use-case diagrams and interaction modelling.
-
-↓
-
-Week 10
-
-Behavioural Modelling Continued
-
-Sequence diagrams, collaboration diagrams, activity diagrams and analysis documentation.
-
-↓
-
-Week 11
-
-Unified Software Development Process
-
-USDP/UP, characteristics, phases, interactions and workflows.
-
-↓
-
-Week 12
-
-USDP Continued
-
-Artefacts, reuse, concurrency, generalisation and inheritance within the development process.
-
-↓
-
-Week 13
-
-Object-Oriented Design
-
-Understanding design and moving from analysis toward a software solution.
-
-↓
-
-Week 14
-
-Combining the Models
-
-Object + Dynamic + Behavioural models.
-
-↓
-
-Week 15
-
-Complete OOAD Case Study
-
-Requirements → UML → Analysis → Design → Components → CASE tool → Model integration.
-
-↓
-
-Week 16
-
-COMPREHENSIVE REVISION + INTEGRATED APPLICATION + EXAM PREPARATION
-
-That is the full journey.
+That is the actual 16-week sequence represented by the course materials.
 
 
 ---
@@ -2367,11 +2262,13 @@ Students must submit:
 
 ---
 
-PART W — FINAL MOCK EXAMINATION
+PART W — EXAMINATION REVISION QUESTION BANK
+
+This is a revision question bank, not a single timed examination: it has no fixed duration, mark allocation or selection rule. Use it for short, untimed recall and discussion. For a full, timed practice sitting, use the generated papers in `output/exams/candidates/` (sources in `exams/`) and the separate examiner's guide (lecturers only).
 
 SECTION A — SHORT ANSWERS
 
-Answer all questions.
+Use these prompts for short-answer recall. For the comparison, essay and case-study sections below, match the depth of your response to the task.
 
 1.
 
@@ -2546,7 +2443,7 @@ workflows;
 artefacts.
 
 
-The iterative nature of phases and iterations is consistent with IBM's current RUP-related documentation. 
+When discussing the Unified Process, use the prescribed course texts and explain how phases, iterations, workflows and artefacts support incremental, risk-aware development.
 
 
 ---
@@ -2595,6 +2492,23 @@ g. Create a sequence diagram for "Register Course".
 h. Create an activity diagram for registration.
 i. Create a state diagram for Course.
 j. Explain how the models are related.
+
+
+---
+
+Full-length timed practice papers
+
+Two parallel papers are included with this module:
+
+- Paper A — Community Clinic Appointment System: `exams/End-Semester-Exam-Paper-A.md`
+- Paper B — Campus Equipment Lending System: `exams/End-Semester-Exam-Paper-B.md`
+- Examiner's marking guide (lecturers only): `exams/Examiner-Marking-Guide.md`
+
+Printable PDF and editable Word copies are in `output/exams/candidates/`; the guide is in `output/exams/examiner/`. These are publicly available practice materials, not secure live exam papers.
+
+Each candidate paper uses the same proposed 100-mark structure: Question 1 is compulsory (40 marks), followed by any three of four Section B questions (20 marks each). The candidate-facing total is 100 marks; the examination contributes 60% of the overall module grade under the course outline. The papers are parallel practice forms rather than two exams students must sit.
+
+The course outline does not state a sitting duration. The three-hour duration printed on these drafts is a proposal and must be confirmed against Faculty rules before formal use. Use the marking guide only for moderation and marking; do not distribute it with candidate copies.
 
 
 ---
@@ -2708,6 +2622,23 @@ Always:
 Do not randomly draw diagrams.
 
 
+Exam-time and diagram-quality checklist
+
+For the proposed three-hour practice papers, use the mark allocation to plan your time rather than spending too long on one diagram. A possible plan is about 65 minutes for the compulsory 40-mark case, about 32 minutes for each of three 20-mark questions, and the remaining time to read instructions and check answers. Adjust this plan if the approved examination duration differs.
+
+Before handing in a UML answer, check:
+
+- Have I answered the exact task and labelled the system boundary or modelled subject?
+- Are actors external roles and use cases actor goals?
+- Are class names, attributes, operations, relationships and multiplicities meaningful?
+- Do sequence messages have a plausible receiving object and matching design operation?
+- Are state changes triggered by events, with guards where a rule is conditional?
+- Do the activity, sequence and state models tell compatible stories?
+- Have I stated assumptions and business constraints clearly?
+
+The two practice papers are linked in `exams/End-Semester-Exam-Paper-A.md` and `exams/End-Semester-Exam-Paper-B.md`. They are equivalent practice forms, not a requirement to sit both.
+
+
 ---
 
 PART Y — FINAL WEEK 16 TAKEAWAY
@@ -2760,6 +2691,14 @@ It is about thinking systematically about a software problem, identifying the th
 80. FINAL REVISION CHECKLIST
 
 Before sitting for the examination, every student should be able to answer YES to the following:
+
+Business and Requirements
+
+[ ] Can I distinguish a business problem, business need, requirement and solution?
+
+[ ] Can I identify stakeholders and write functional and measurable non-functional requirements?
+
+[ ] Can I trace a requirement to a use case and model element?
 
 Object Orientation
 
@@ -2894,36 +2833,22 @@ Examination
 
 81. FINAL REFERENCE BASE
 
-For the technical UML standard, students should use the Object Management Group (OMG) specification as the authoritative reference. OMG currently lists UML 2.5.1 as a formal specification and provides the normative specification documents and machine-readable UML artefacts. 
+For technical UML notation and semantics, use the Object Management Group's UML 2.5.1 specification as the standard reference.
 
-[OMG — UML 2.5.1 Specification](https://www.omg.org/spec/UML/2.5.1/?utm_source=chatgpt.com)
+[OMG — UML 2.5.1 Specification](https://www.omg.org/spec/UML/2.5.1/)
 
-For the Unified Process material, IBM's documentation provides current documentation describing phases and iterations in RUP-related project planning. 
+For the Unified Process, consult the prescribed course texts and lecturer-approved references, paying attention to phases, iterations, workflows and artefacts.
 
-The prescribed and recommended textbooks from the university course outline should remain the primary course-reading materials, while current standards such as OMG UML 2.5.1 can be used to strengthen and verify the technical material.
+The prescribed and recommended textbooks from the university course outline should remain the primary course-reading materials; the OMG specification can be used to verify technical UML details.
 
 
 ---
 
 82. CONCLUSION OF THE 16-WEEK MODULE
 
-Week 1 taught students to understand the business problem.
+Week 1 established business/software needs and object technology; Week 2 developed object-modelling principles; Weeks 3–4 introduced and formalised UML; Weeks 5–6 developed structural object modelling; Week 7 modelled dynamic behaviour; Week 8 modelled use cases and interactions; and Week 9 covered the Unified Software Development Process.
 
-Weeks 2–4 developed understanding of object technology and object modelling.
-
-Week 5 introduced UML.
-
-Weeks 6–7 developed object/class modelling.
-
-Week 8 introduced dynamic modelling.
-
-Weeks 9–10 developed behavioural and interaction modelling.
-
-Weeks 11–12 introduced the Unified Software Development Process and related concepts.
-
-Weeks 13–14 moved from analysis into object-oriented design and model integration.
-
-Week 15 applied everything through a complete OOAD case study and CASE-tool exercise.
+Weeks 10–12 moved into object-oriented design, refinement and integrated modelling. Weeks 13–14 developed multilayer architecture, reusable components and model integration. Week 15 applied these ideas in a complete OOAD case study and CASE-tool exercise.
 
 And now:
 

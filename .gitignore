@@ -1,4 +1,29 @@
 __pycache__/
 *.pyc
 .venv/
-output/
+# Keep only the reviewed deliverables for this update; ignore scratch renders
+# and unrelated generated weeks.
+output/*
+!output/README.md
+!output/QA-Report.md
+!output/checksums.sha256
+!output/week15/
+!output/week16/
+!output/exams/
+output/week15/*
+output/week16/*
+output/exams/*
+!output/week15/*.pdf
+!output/week15/*.docx
+!output/week15/*.pptx
+!output/week16/*.pdf
+!output/week16/*.docx
+!output/week16/*.pptx
+!output/exams/candidates/
+!output/exams/examiner/
+output/exams/candidates/*
+output/exams/examiner/*
+!output/exams/candidates/*.pdf
+!output/exams/candidates/*.docx
+!output/exams/examiner/*.pdf
+!output/exams/examiner/*.docx

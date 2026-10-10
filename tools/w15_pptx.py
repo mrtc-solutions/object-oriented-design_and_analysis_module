@@ -101,19 +101,19 @@ def slides(d):
     s = d.slide()
     d.header(s, "Sequence Diagram", "Which object talks to which, in what order")
     d.pic(s, "w15_sequence.png", y=1.5, w=10.4)
-    d.takeaway(s, "Class diagram = what exists · Sequence = how they cooperate.")
+    d.takeaway(s, "reserveSeat() + save in one transaction; send confirmation only after commit.")
 
     # 16. state machine
     s = d.slide()
     d.header(s, "State Machine: Course Lifecycle", "States and their triggering events")
     d.pic(s, "w15_state_machine.png", y=1.5, w=10.4)
-    d.takeaway(s, "The state machine explains WHY the status changes.")
+    d.takeaway(s, "Guard: enrolledCount <= capacity · seat reservation drives Available <-> Full.")
 
     # 17. activity
     s = d.slide()
     d.header(s, "Activity Diagram", "The registration workflow")
     d.pic(s, "w15_activity.png", y=1.5, w=10.4)
-    d.takeaway(s, "Decisions: prerequisite satisfied? space available?")
+    d.takeaway(s, "Check prerequisite + duplicate; reserve seat atomically; reject without saving on failure.")
 
     # 18. components
     s = d.slide()
@@ -125,7 +125,7 @@ def slides(d):
     s = d.slide()
     d.header(s, "Model Traceability", "Following one requirement through the design")
     d.pic(s, "w15_traceability.png", y=1.5, w=10.4)
-    d.takeaway(s, "The exact language does not change the OOAD principle.")
+    d.takeaway(s, "FR5 -> registerStudent() · FR6 -> existsActiveFor() + unique constraint · FR7 -> reserveSeat().")
 
     # 20. consistency audit
     s = d.slide()

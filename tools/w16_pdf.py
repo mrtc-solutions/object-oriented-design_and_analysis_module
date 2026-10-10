@@ -327,19 +327,21 @@ def story():
     s.append(H1("PART T — THE 16-WEEK JOURNEY"))
     s.append(H1("24.  What Students Have Covered"))
     s += BUL([
-        "<b>Week 1–3:</b> business needs, business software needs, object technology for business.",
-        "<b>Week 4–5:</b> principles of object modelling; UML, its building blocks and mechanisms.",
-        "<b>Week 6–7:</b> object modelling I &amp; II — classes, associations, aggregation, inheritance, polymorphism.",
-        "<b>Week 8:</b> dynamic modelling — events, states, operations, concurrency.",
-        "<b>Week 9–10:</b> behavioural modelling — use cases, sequence, collaboration and activity diagrams.",
-        "<b>Week 11–12:</b> the Unified Software Development Process, artefacts and reuse.",
-        "<b>Week 13–14:</b> object-oriented design and combining the models.",
+        "<b>Week 1:</b> business needs, software needs and object technology for business.",
+        "<b>Week 2:</b> principles of object modelling.",
+        "<b>Weeks 3–4:</b> UML overview, building blocks, rules, mechanisms and architecture.",
+        "<b>Weeks 5–6:</b> object modelling I &amp; II — classes, associations, aggregation, inheritance, polymorphism and grouping.",
+        "<b>Week 7:</b> dynamic modelling — events, states, operations and concurrency.",
+        "<b>Week 8:</b> behavioural modelling — use cases, interactions, sequences, communication and activities.",
+        "<b>Week 9:</b> USDP/UP — phases, iterations, workflows, artefacts, risk and reuse.",
+        "<b>Weeks 10–12:</b> object-oriented design, refinement and integrated modelling.",
+        "<b>Weeks 13–14:</b> multilayer architecture, reusable components and integrated design.",
         "<b>Week 15:</b> complete OOAD case study and CASE-tool implementation.",
         "<b>Week 16:</b> comprehensive revision, integrated application and examination preparation.",
     ])
 
     # tutorial / practical -------------------------------------------------------
-    s.append(H1("25.  Tutorial, Practical and Mock Examination"))
+    s.append(H1("25.  Tutorial, Practical and Examination Practice"))
     s += [P("<b>Tutorial:</b> an Online Examination Management System — identify actors; at least 10 use "
             "cases; at least 10 candidate classes; the use-case diagram; the class diagram; a sequence "
             "diagram for Start Examination; an activity diagram for Taking an Examination; a state "
@@ -350,22 +352,27 @@ def story():
             "statement, objectives, functional and non-functional requirements, actors, use cases, "
             "use-case, class, sequence, activity, state and component diagrams, architecture, model "
             "consistency analysis and conclusion."),
-          P("<b>Mock examination:</b> Section A — 20 short answers (define OO analysis/design, "
-            "encapsulation, abstraction, polymorphism, UML, actor, use case, multiplicity, state, "
-            "event, CASE tool…); Section B — differentiate (class vs object, analysis vs design, "
-            "aggregation vs composition, generalisation vs inheritance, sequence vs activity, include "
-            "vs extend); Section C — long answers (four OO principles; the role of UML; the Unified "
-            "Process); Section D — a full case study with actors, use cases, diagrams and model "
-            "relationships.")]
+          P("<b>Revision question bank:</b> use the short-answer, comparison, long-answer and case-study "
+            "prompts in this module for untimed practice; they are not a complete timed paper. Two "
+            "parallel full-length practice papers are provided as "
+            "<font name='Mono'>exams/End-Semester-Exam-Paper-A.md</font> and "
+            "<font name='Mono'>exams/End-Semester-Exam-Paper-B.md</font>, with a separate confidential "
+            "marking guide. Each draft paper is 100 marks with Q1 compulsory (40) plus any three of four "
+            "20-mark questions. The course outline assigns 60% to the examination but does not specify a "
+            "duration; the three-hour duration in the drafts must be confirmed by the Faculty before "
+            "formal issue.")]
 
     # PART X — exam strategy -------------------------------------------------------
     s.append(H1("26.  Exam Answering Strategy"))
-    s += [P("For <b>definition</b> questions, do not write only “encapsulation is hiding data” — write "
-            "the full definition, then give an example. For <b>explain</b> questions, use Definition -> "
-            "Explanation -> Example -> Importance. For <b>compare</b> questions, use a table (e.g. class "
-            "vs object: meaning, memory, example, quantity). For <b>UML</b> questions, always identify "
-            "the requirement, actors, use cases, classes, relationships, behaviour — then check "
-            "consistency. <b>Do not randomly draw diagrams.</b>")]
+    s += [P("For <b>definition</b> questions, write the full definition and give an example. For "
+            "<b>explain</b> questions, use Definition -> Explanation -> Example -> Importance. For "
+            "<b>compare</b> questions, use a table. For <b>UML</b> questions, identify the requirement, "
+            "actors, use cases, classes, relationships and behaviour — then check consistency. State "
+            "assumptions, and let the marks guide the amount of detail. <b>Do not randomly draw diagrams.</b>"),
+          P("For the proposed 3-hour practice papers, a possible plan is about 65 minutes for the "
+            "40-mark integrated case, about 32 minutes for each of the three chosen Section B questions, "
+            "and the remaining time for reading and checking. Adjust this plan if the approved exam "
+            "duration differs.")]
 
     # final takeaway -------------------------------------------------------
     s.append(H1("27.  Final Week 16 Takeaway"))
@@ -412,16 +419,15 @@ def story():
 
     # conclusion -------------------------------------------------------
     s.append(H1("30.  Conclusion of the 16-Week Module"))
-    s += [P("Week 1 taught students to understand the business problem; Weeks 2–4 developed object "
-            "technology and modelling; Week 5 introduced UML; Weeks 6–7 developed object/class "
-            "modelling; Week 8 introduced dynamic modelling; Weeks 9–10 developed behavioural and "
-            "interaction modelling; Weeks 11–12 introduced the Unified Software Development Process; "
-            "Weeks 13–14 moved from analysis into design and model integration; Week 15 applied "
-            "everything through a complete case study. Now, in Week 16, <b>the student becomes the "
-            "analyst/designer</b> — capable of being told “here is a real-world problem” and "
-            "independently producing Requirements -> Actors -> Use Cases -> Classes -> Relationships -> "
-            "Interactions -> Behaviour -> Architecture -> Components -> an Integrated UML Model. That is "
-            "the intended culmination of BICT 3202 Object-Oriented Analysis and Design.")]
+    s += [P("Week 1 establishes business/software needs and object technology; Week 2 develops object "
+            "modelling principles; Weeks 3–4 cover UML; Weeks 5–6 develop object modelling; Week 7 "
+            "covers dynamic modelling; Week 8 covers behavioural modelling; Week 9 introduces USDP/UP; "
+            "Weeks 10–12 develop object-oriented design, refinement and model integration; Weeks 13–14 "
+            "focus on multilayer architecture, reusable components and design integration; Week 15 "
+            "applies the process in a complete case study. In Week 16, <b>the student becomes the "
+            "analyst/designer</b> — able to move from Requirements -> Actors -> Use Cases -> Classes -> "
+            "Relationships -> Interactions -> Behaviour -> Architecture -> Components -> an Integrated "
+            "UML Model. That is the culmination of BICT 3202 Object-Oriented Analysis and Design.")]
 
     return s
 
